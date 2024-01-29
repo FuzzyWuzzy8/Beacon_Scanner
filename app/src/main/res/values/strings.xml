@@ -23,6 +23,7 @@
     <string name="gotDidEnterRegionCall">Entered region callback received</string>
     <string name="gotDidExitRegionCall">Exited region callback received</string>
     <string name="gotDidStateRegionCall">State for region callback received</string>
+    <string name="newRangingThread">Creating a new ranging thread</string>
     <string name="beaconDetected">Beacon detected</string>
     <string name="uuid">UUID</string>
     <string name="major">Major</string>
