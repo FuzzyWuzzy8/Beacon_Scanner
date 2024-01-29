@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Beacon_Scanner</string>
+    <string name="scanStopped">Scanning stopped</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="accessRightsGranted">Access rights granted</string>
+    <string name="accessRightsNOTgranted">Access rights NOT granted</string>
+    <string name="rangingThreadStarting">Starting ranging thread</string>
+    <string name="rangingThreadStarted">Ranging thread started</string>
+    <string name="gotDidEnterRegionCall">Received didEnterRegion call</string>
+    <string name="newRangingThread">New ranging thread</string>
+    <string name="gotDidExitRegionCall">Received gotDidExitRegion call</string>
+    <string name="gotDidStateRegionCall">Received gotDidStateRegion call</string>
+    <string name="errorWhileInvokingBeaconManager">Error while invoking BeaconManager</string>
+</resources>
