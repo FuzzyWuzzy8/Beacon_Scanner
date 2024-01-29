@@ -50,6 +50,9 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
     private TextView textViewMessage;
     private Button buttonStartStop;
 
+    private long lastMomentDetectingBeacon = -1;
+
+
     private static final char ANDROID_VERSION_OREO_AND_NEVER = 'o';
     private static final char ANDROID_VERSION_NOUGAT_AND_OLDER = 'n';
     private char currentAndroidVersion = ANDROID_VERSION_NOUGAT_AND_OLDER;
@@ -85,6 +88,8 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
             }
         });
     }
+
+
 
     @TargetApi(23)
     @Override
@@ -240,7 +245,29 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
 
     @Override
     public void onBeaconServiceConnect() {
-        // Implementation of the onBeaconServiceConnect method
+        if (currentAndroidVersion == ANDROID_VERSION_NOUGAT_AND_OLDER) {
+            lastMomentDetectingBeacon = System.currentTimeMillis();
+            RangeNotifier rangeNotifier = new RangeNotifier() {
+                @Override
+                public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
+                    lastMomentDetectingBeacon = System.currentTimeMillis();
+                    String beaconReport = "";
+                    if (beacons.size() > 0) {
+                        for (Beacon beaconNext : beacons) {
+                            beaconReport += "Beacon:\n" +
+                                    "UUID=" + beaconNext.getId1().toString() + "\n" +
+                                    "Major=" + beaconNext.getId2().toString() + "\n" +
+                                    "Minor=" + beaconNext.getId3().toString() + "\n" +
+                                    "Address=" + beaconNext.getBluetoothAddress().toString() + "\n" +
+                                    "Distance=" + (int) (beaconNext.getDistance() * 100) + "cm\n\n";
+                        }
+                        printMessage(beaconReport);
+                    }
+                }
+            };
+            beaconManager.addRangeNotifier(rangeNotifier);
+            startRangingBeacons();
+        }
     }
 
     @Override
@@ -264,7 +291,6 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
 
         private boolean threadStarted = false;
         private BeaconManager beaconManager = null;
-        private long lastMomentDetectingBeacon = -1;
         private Region region = null;
         private char currentAndroidVersion = ANDROID_VERSION_NOUGAT_AND_OLDER;
 
