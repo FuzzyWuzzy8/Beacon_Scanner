@@ -1,15 +1,34 @@
 <resources>
-    <string name="app_name">Beacon_Scanner</string>
-    <string name="scanStopped">Scanning stopped</string>
+    <string name="app_name">BeaconScanner</string>
+    <string name="accessRightsGranted">Access rights granted</string>
+    <string name="accessRightsNOTgranted">Access rights not granted</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
-    <string name="accessRightsGranted">Access rights granted</string>
-    <string name="accessRightsNOTgranted">Access rights NOT granted</string>
-    <string name="rangingThreadStarting">Starting ranging thread</string>
-    <string name="rangingThreadStarted">Ranging thread started</string>
-    <string name="gotDidEnterRegionCall">Received didEnterRegion call</string>
-    <string name="newRangingThread">New ranging thread</string>
-    <string name="gotDidExitRegionCall">Received gotDidExitRegion call</string>
-    <string name="gotDidStateRegionCall">Received gotDidStateRegion call</string>
+    <string name="scanStopped">Scan stopped</string>
+    <string name="beaconScan">Beacon Scan</string>
+    <string name="notification_BLE_ID">notification_BLE_ID</string>
+    <string name="notificationBLE">Notification BLE</string>
+    <string name="notificationChannelForBLEscan">Notification channel for BLE scan</string>
     <string name="errorWhileInvokingBeaconManager">Error while invoking BeaconManager</string>
+    <string name="rangingThreadStarting">Ranging thread starting</string>
+    <string name="rangingThreadStarted">Ranging thread started</string>
+    <string name="beaconScannerStartedAndListeningForAndroid8">Beacon scanner started and listening for Android 8</string>
+    <string name="scanningForBeaconsInFormerAndroidForegroundTroubleStillBonded">Scanning for beacons in former Android foreground, trouble still bonded</string>
+    <string name="scanningForBeaconsInFormerAndroidForegroundModeCompatibleWithOreoERROR">Scanning for beacons in former Android foreground mode compatible with Oreo ERROR</string>
+    <string name="beaconConsumerThreadOnServiceConnect">Beacon consumer thread on service connect</string>
+    <string name="beaconConsumerThreadBindError">Beacon consumer thread bind error</string>
+    <string name="waitedForRunningThreadToAwake">Waited for running thread to awake</string>
+    <string name="beaconConsumerThreadAborted">Beacon consumer thread aborted</string>
+    <string name="beaconConsumerThreadDestroy">Beacon consumer thread destroy</string>
+    <string name="gotDidEnterRegionCall">Entered region callback received</string>
+    <string name="gotDidExitRegionCall">Exited region callback received</string>
+    <string name="gotDidStateRegionCall">State for region callback received</string>
+    <string name="beaconDetected">Beacon detected</string>
+    <string name="uuid">UUID</string>
+    <string name="major">Major</string>
+    <string name="minor">Minor</string>
+    <string name="addr">Address</string>
+    <string name="cm">cm</string>
+
+
 </resources>

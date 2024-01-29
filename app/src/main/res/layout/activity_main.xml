@@ -10,29 +10,27 @@
         android:id="@+id/textViewAppName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="App Name"
+        android:text="Beacon Scanner"
         android:textSize="24sp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="16dp"/>
+        android:textStyle="bold"
+        android:layout_centerHorizontal="true"/>
 
     <TextView
         android:id="@+id/textViewMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Message"
-        android:textSize="18sp"
         android:layout_below="@id/textViewAppName"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="32dp"/>
+        android:text="Scan Stopped"
+        android:textSize="18sp"
+        android:layout_marginTop="16dp"/>
 
     <Button
         android:id="@+id/buttonStartStop"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start"
         android:layout_below="@id/textViewMessage"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="32dp"/>
+        android:text="Start"
+        android:layout_marginTop="16dp"/>
 
 </RelativeLayout>
