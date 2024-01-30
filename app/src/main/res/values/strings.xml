@@ -1,4 +1,60 @@
 <resources>
+    <string name="app_Name">BeaconScanner</string>
+    <string name="appVersion">v.1.01</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="scanStarted">Beacon scanning started</string>
+    <string name="scanStopped">Beacon scanning stopped</string>
+    <string name="scanFailedWithErrorCode">Beacon scanning failed with error code=</string>
+    <string name="accessRightsGranted">Access rights to BLE granted</string>
+    <string name="accessRightsNOTgranted">Access rights to BLE granted</string>
+    <string name="gotDidStateRegionCall">Got a didStateRegion call</string>
+    <string name="gotDidEnterRegionCall">Got a didEnterRegion call</string>
+    <string name="rangingThreadStarting">Ranging thread starting</string>
+    <string name="rangingThreadStarted">Ranging thread started</string>
+    <string name="startedRangingInRegion">started ranging in region</string>
+    <string name="errorWhileRangingInRegion">error while ranging in region</string>
+    <string name="newRangingThreadToStart">New ranging thread to start</string>
+    <string name="newRangingThreadStarted">new ranging thread started</string>
+    <string name="newRangingThread">New ranging thread</string>
+    <string name="oldRangingThreadToAbort">Old ranging thread to abort</string>
+    <string name="gotDidExitRegionCall">Got a didExitRegion call</string>
+    <string name="beaconConsumerThreadNoViewCreated">Beacon consumer thread: no view created</string>
+    <string name="beaconConsumerThreadBind">Beacon consumer: bind</string>
+    <string name="beaconConsumerThreadBinded">Beacon consumer: binded</string>
+    <string name="beaconConsumerThreadBindError">Beacon consumer: bind error</string>
+    <string name="beaconConsumerThreadCreateViewCompleted">Beacon consumer: create view completed</string>
+    <string name="beaconConsumerThreadStarted">Beacon consumer thread started</string>
+    <string name="beaconConsumerThreadStarting">Beacon consumer thread starting</string>
+    <string name="beaconConsumerThreadAborted">Beacon consumer thread aborted</string>
+    <string name="beaconConsumerThreadDestroy">Beacon consumer thread: destroy</string>
+    <string name="waitedForRunningThreadToAwake">Waited for running thread to awake</string>
+    <string name="beaconConsumerThreadOnServiceConnect">Beacon consumer thread: on service connect</string>
+    <string name="beaconConsumerThreadMinDistance">Beacon consumer thread: min distance</string>
+    <string name="beaconDetected">Beacon detected</string>
+    <string name="ms">ms</string>
+    <string name="cm">cm</string>
+    <string name="beaconScan">BLE beacon scanning</string>
+    <string name="errorWhileInvokingBeaconManagerNullObject">Error while invoking beacon manager, null object</string>
+    <string name="beaconScannerStartedAndListeningForAndroid7">Beacon scanner started and listening for Android version older than 8</string>
+    <string name="beaconScannerStartedAndListeningForAndroid8">Beacon scanner started and listening for Android version younger or equal 8</string>
+    <string name="errorWhileInvokingBeaconManager">Error while invoking beacon manager</string>
+    <string name="scanningForBeaconsInFormerAndroidForegroundTroubleStillBonded">Scanning for Beacons in Former Android foreground trouble - still bonded</string>
+    <string name="notificationChannelForBLEscan">Notification Channel For BLE sca</string>
+    <string name="notification_BLE_ID">Notification_BLE_ID</string>
+    <string name="notificationBLE">Notification BLE</string>
+    <string name="beaconscannerStartedAndListeningForAndroid8ForegroundMode">Beacon scanner started and listening for Android >= 8 foreground mode</string>
+    <string name="scanningForBeaconsInFormerAndroidForegroundModeCompatibleWithOreoERROR">Scanning for Beacons in Former Android foreground mode compatible with Oreo+ ***ERROR***</string>
+    <string name="scanningForBeaconsInFormerAndroidForegroundModeCompatibleWithOreoReady">Scanning for Beacons in Former Android foreground mode compatible with Oreo+ ready</string>
+    <string name="beaconRanging">Beacon Ranging</string>
+    <string name="beacon">Beacon</string>
+    <string name="uuid">UUID</string>
+    <string name="major">Major</string>
+    <string name="minor">Minor</string>
+    <string name="addr">addr</string>
+
+    <!--
+
     <string name="app_name">BeaconScanner</string>
     <string name="accessRightsGranted">Access rights granted</string>
     <string name="accessRightsNOTgranted">Access rights not granted</string>
@@ -30,6 +86,8 @@
     <string name="minor">Minor</string>
     <string name="addr">Address</string>
     <string name="cm">cm</string>
+
+    -->
 
 
 </resources>
