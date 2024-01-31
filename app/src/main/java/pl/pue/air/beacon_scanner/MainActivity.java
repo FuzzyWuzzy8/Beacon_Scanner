@@ -12,6 +12,7 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -27,12 +28,15 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.RegionBootstrap;
+//import org.altbeacon.beacon.startup.RegionBootstrap;
 
 
 import java.util.Collection;
 import java.util.Iterator;
 
 public class MainActivity extends AppCompatActivity implements BeaconConsumer, RangeNotifier {
+
+
 
     private static final String TAG = "BSc";
     private static final int PERMISSION_REQUEST_CODE = 223344;
@@ -65,6 +69,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
         textViewMessage = findViewById(R.id.textViewMessage);
         buttonStartStop = findViewById(R.id.buttonStartStop);
 
+
         if (Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH)
                     != PackageManager.PERMISSION_GRANTED ||
@@ -89,6 +94,23 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
         });
     }
 
+    // Method to print a message
+    public void printMessage(String message) {
+        Log.d(TAG, message);
+        // Display the message in a TextView or any other UI component
+        // textViewMessage.setText(message);
+    }
+
+    // Method to start ranging beacons
+    public void startRangingBeacons() {
+        try {
+            // Start ranging beacons using the BeaconManager instance
+            beaconManager.startRangingBeaconsInRegion(region);
+            Log.d(TAG, "Ranging beacons started.");
+        } catch (RemoteException e) {
+            Log.e(TAG, "Error starting ranging beacons: " + e.getMessage());
+        }
+    }
 
 
     @TargetApi(23)
