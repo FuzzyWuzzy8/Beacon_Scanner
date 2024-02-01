@@ -332,9 +332,28 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
             // Implementation of the exitThread method
         }
 
+        // Implementation of the waitForThreadToAwake method
         public void waitForThreadToAwake(long maxDelay) {
-            // Implementation of the waitForThreadToAwake method
+            if (currentAndroidVersion==ANDROID_VERSION_NOUGAT_AND_OLDER) {
+                long start = System.currentTimeMillis();
+                long now = start;
+                long maxTime = start + maxDelay;
+                while ((!beaconManager.isBound(this)) && now < maxTime) {
+                    try {
+                        Thread.sleep(10);
+                        now = System.currentTimeMillis();
+                    } catch (Throwable e) {
+                        //ilb}
+                    }
+                }
+                Log.d(TAG, MainActivity.this.getString(
+                        R.string.waitedForRunningThreadToAwake)+
+                        ": "+(System.currentTimeMillis()-start)+
+                        MainActivity.this.getString(R.string.ms));
+            }
         }
+
+
 
         @Override
         public void onBeaconServiceConnect() {
