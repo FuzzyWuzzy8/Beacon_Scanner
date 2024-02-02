@@ -185,7 +185,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
         // Handle beacon ranging here
     }
 
-    @Override
+//    @Override
     public void didEnterRegion(Region region) {
         Log.d(TAG, getString(R.string.gotDidEnterRegionCall));
         if (rangingThread == null) {
@@ -196,12 +196,12 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
         }
     }
 
-    @Override
+   // @Override
     public void didExitRegion(Region region) {
         Log.d(TAG, getString(R.string.gotDidExitRegionCall));
     }
 
-    @Override
+  //  @Override
     public void didDetermineStateForRegion(int state, Region region) {
         Log.d(TAG, getString(R.string.gotDidStateRegionCall) + '=' + state);
     }
@@ -311,25 +311,82 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
     // Nested class representing your RangingThread
     public class RangingThread extends Thread implements BeaconConsumer {
 
+        private RangeNotifier rangeNotifier;
+        private static RangingThread rangingThread;
+        private long lastMomentDetectingBeacon=-1;
+        private boolean anyBeaconDetected=false;
+        private boolean isForegroundStarted=false;
+
         private boolean threadStarted = false;
         private BeaconManager beaconManager = null;
         private Region region = null;
         private char currentAndroidVersion = ANDROID_VERSION_NOUGAT_AND_OLDER;
+        private static final char ANDROID_VERSION_OREO_AND_NEVER='o';
+        private static final char ANDROID_VERSION_NOUGAT_AND_OLDER='n';
 
-        public RangingThread(Region region) {
+        // Initialize other necessary components for the thread
+        protected RangingThread(Region region) {
             this.region = region;
             beaconManager = BeaconManager.getInstanceForApplication(MainActivity.this);
-            // Initialize other necessary components for the thread
+
         }
 
         // Implementation of the thread's run method
         @Override
         public void run() {
-            // Implementation of the run method
+            Log.d(TAG, MainActivity.this.getString(
+                    R.string.beaconConsumerThreadStarted));
+            long lastActivity=System.currentTimeMillis();
+            long maxDelay=30000L;//a half of a minute to restart, really pessimistic
+            long now=-1L;
+            while (threadStarted){
+                if (!anyBeaconDetected){
+// if no beacon detected and timeout reached, resetting the scanning
+                    try{
+                        if (currentAndroidVersion==ANDROID_VERSION_NOUGAT_AND_OLDER){
+                            if (!beaconManager.isBound(this)) {
+                                beaconManager.bind(this);
+                                MainActivity.this.startRangingBeacons();
+                            }
+                            if (lastMomentDetectingBeacon>0){
+                                now=System.currentTimeMillis();
+                                if (lastMomentDetectingBeacon+maxDelay<now){
+                                    lastMomentDetectingBeacon=now;
+                                    lastActivity=now;
+                                    beaconManager.unbind(this);
+                                }
+                            }
+                            else{
+                                now=System.currentTimeMillis();
+                                if (lastActivity+maxDelay<now){
+                                    beaconManager.unbind(this);
+                                    lastActivity=now;
+                                    beaconManager.bind(this);
+                                    MainActivity.this.startRangingBeacons();
+                                }
+                            }
+                        }
+                    }catch (Throwable e){
+                        Log.e(TAG, MainActivity.this.getString(
+                                R.string.beaconConsumerThreadBindError)+" 3:"+e.getMessage());
+                    }
+                }
+                try{
+                    Thread.sleep(100);}catch (Throwable e){}
+            }
+            Log.d(TAG,
+                    MainActivity.this.getString(R.string.beaconConsumerThreadAborted));
         }
 
+
+        // Implementation of the exitThread method
         public void exitThread() {
-            // Implementation of the exitThread method
+            Log.d(TAG,
+                    MainActivity.this.getString(R.string.beaconConsumerThreadDestroy));
+            if (currentAndroidVersion==ANDROID_VERSION_NOUGAT_AND_OLDER) {
+                beaconManager.unbind(this);
+            }
+            threadStarted=false;
         }
 
         // Implementation of the waitForThreadToAwake method
