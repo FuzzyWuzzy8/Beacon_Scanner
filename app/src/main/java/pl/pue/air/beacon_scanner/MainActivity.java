@@ -28,6 +28,8 @@ import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.RegionBootstrap;
+import org.altbeacon.beacon.service.ArmaRssiFilter;
+import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 //import org.altbeacon.beacon.startup.RegionBootstrap;
 
 
@@ -128,21 +130,29 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
         }
     }
 
+
+
+
     public void startScan() {
         try {
             beaconManager = BeaconManager.getInstanceForApplication(this);
             beaconManager.getBeaconParsers().add(new BeaconParser().
-                    setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
+                    setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24")); // for ESTIMOTE only
 
-            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) {
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) { //kitkat, loolipop, marshmallow, nougat
+                // wake up the app when any beacon is seen (you can specify specific id filers in the parameters below)
                 if (region == null)
                     region = new Region("BeSC", null, null, null);
                 if (regionBootstrap == null)
                     regionBootstrap = new RegionBootstrap(this, region);
-                beaconManager.setBackgroundScanPeriod(200L);
-                beaconManager.setBackgroundBetweenScanPeriod(650L);
+                beaconManager.setBackgroundScanPeriod(200L); // NOT TRUE!: this period cannot be longer than 2 times 100ms (beacon broadcast interval)
+                beaconManager.setBackgroundBetweenScanPeriod(650L); // non-round values to avoid the coincidence with beacon broadcast interval (100ms)
                 beaconManager.setForegroundScanPeriod(200L);
                 beaconManager.setForegroundBetweenScanPeriod(650L);
+
+                BeaconManager.setRssiFilterImplClass(ArmaRssiFilter.class);
+                RunningAverageRssiFilter.setSampleExpirationMilliseconds(1000l);
+                ArmaRssiFilter.setDEFAULT_ARMA_SPEED(0.5);
                 beaconManager.setBackgroundMode(true);
                 beaconManager.setAndroidLScanningDisabled(true);
                 Log.d(TAG, "Beacon scanner started and listening for Android < 8 ");
