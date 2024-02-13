@@ -27,9 +27,11 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
-import org.altbeacon.beacon.RegionBootstrap;
+
 import org.altbeacon.beacon.service.ArmaRssiFilter;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
+import org.altbeacon.beacon.startup.RegionBootstrap;
+//import org.altbeacon.beacon.RegionBootstrap;
 //import org.altbeacon.beacon.startup.RegionBootstrap;
 
 
@@ -139,6 +141,11 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
             beaconManager.getBeaconParsers().add(new BeaconParser().
                     setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24")); // for ESTIMOTE only
 
+            // Create and start RegionBootstrap
+            Region region = new Region("BeSC", null, null, null);
+            regionBootstrap = new RegionBootstrap(MainActivity.this, region);
+
+            // Set beacon scanning parameters based on Android version
             if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) { //kitkat, loolipop, marshmallow, nougat
                 // wake up the app when any beacon is seen (you can specify specific id filers in the parameters below)
                 if (region == null)
@@ -162,20 +169,20 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
                 setBLEForegroundService(null);
             }
 
+            // Start ranging thread if not already started
             if (rangingThread == null) {
                 Log.e(TAG, getString(R.string.rangingThreadStarting));
                 rangingThread = new RangingThread(region);
                 rangingThread.waitForThreadToAwake(250);
                 rangingThread.start();
-                Log.e(TAG, getString(R.string.rangingThreadStarted) +
-                        ", bind=" + beaconManager.isBound(rangingThread));
+                Log.e(TAG, getString(R.string.rangingThreadStarted) + ", bind=" + beaconManager.isBound(rangingThread));
             }
 
+            // Update UI
             scanStarted = true;
             buttonStartStop.setText(getString(R.string.stop));
         } catch (Throwable e) {
-            Log.e(TAG, getString(R.string.errorWhileInvokingBeaconManager) +
-                    ":" + e.getLocalizedMessage());
+            Log.e(TAG, getString(R.string.errorWhileInvokingBeaconManager) + ":" + e.getLocalizedMessage());
         }
     }
 
@@ -322,7 +329,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
     public class RangingThread extends Thread implements BeaconConsumer {
 
         private RangeNotifier rangeNotifier;
-        private static RangingThread rangingThread;
+        //private static RangingThread rangingThread;
         private long lastMomentDetectingBeacon=-1;
         private boolean anyBeaconDetected=false;
         private boolean isForegroundStarted=false;
