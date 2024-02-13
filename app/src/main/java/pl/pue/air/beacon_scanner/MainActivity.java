@@ -27,6 +27,8 @@ import org.altbeacon.beacon.BeaconManager;
 import org.altbeacon.beacon.BeaconParser;
 import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
+import org.altbeacon.beacon.service.ArmaRssiFilter;
+import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 
 import java.util.Collection;
 
@@ -94,6 +96,24 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
                 setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24")); // for ESTIMOTE only
     }
 
+    // Method to print a message
+    public void printMessage(String message) {
+        Log.d(TAG, message);
+        // Display the message in a TextView or any other UI component
+        // textViewMessage.setText(message);
+    }
+
+    // Method to start ranging beacons
+    public void startRangingBeacons() {
+        try {
+            // Start ranging beacons using the BeaconManager instance
+            beaconManager.startRangingBeaconsInRegion(region);
+            Log.d(TAG, "Ranging beacons started.");
+        } catch (RemoteException e) {
+            Log.e(TAG, "Error starting ranging beacons: " + e.getMessage());
+        }
+    }
+
     @TargetApi(23)
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions,
@@ -111,8 +131,17 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
 
     public void startScan() {
         try {
+
             // Create a region to listen for beacons
+            // Wake up the app when any beacon is seen (you can specify specific id filers in the parameters below)
+            if (region == null)
             region = new Region("BeSC", null, null, null);
+
+            beaconManager.setBackgroundScanPeriod(200L); // NOT TRUE!: this period cannot be longer than 2 times 100ms (beacon broadcast interval)
+            beaconManager.setBackgroundBetweenScanPeriod(650L); // non-round values to avoid the coincidence with beacon broadcast interval (100ms)
+            beaconManager.setForegroundScanPeriod(200L);
+            beaconManager.setForegroundBetweenScanPeriod(650L);
+
 
             // Bind BeaconManager to this activity
             beaconManager.bind(this);
