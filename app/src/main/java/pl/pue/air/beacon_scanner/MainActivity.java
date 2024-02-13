@@ -165,11 +165,28 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
 
     @Override
     public void onBeaconServiceConnect() {
-        try {
-            // Start monitoring the region
-            beaconManager.startMonitoringBeaconsInRegion(region);
-        } catch (RemoteException e) {
-            Log.e(TAG, "Error starting monitoring beacons: " + e.getMessage());
+        if (currentAndroidVersion == ANDROID_VERSION_NOUGAT_AND_OLDER) {
+            lastMomentDetectingBeacon = System.currentTimeMillis();
+            RangeNotifier rangeNotifier = new RangeNotifier() {
+                @Override
+                public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
+                    lastMomentDetectingBeacon = System.currentTimeMillis();
+                    String beaconReport = "";
+                    if (beacons.size() > 0) {
+                        for (Beacon beaconNext : beacons) {
+                            beaconReport += "Beacon:\n" +
+                                    "UUID=" + beaconNext.getId1().toString() + "\n" +
+                                    "Major=" + beaconNext.getId2().toString() + "\n" +
+                                    "Minor=" + beaconNext.getId3().toString() + "\n" +
+                                    "Address=" + beaconNext.getBluetoothAddress().toString() + "\n" +
+                                    "Distance=" + (int) (beaconNext.getDistance() * 100) + "cm\n\n";
+                        }
+                        printMessage(beaconReport);
+                    }
+                }
+            };
+            beaconManager.addRangeNotifier(rangeNotifier);
+            startRangingBeacons();
         }
     }
 
