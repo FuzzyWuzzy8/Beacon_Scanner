@@ -48,11 +48,9 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
     private NotificationChannel channelOreoForeground = null;
     private NotificationManager notificationManagerOreoForeground = null;
     private long lastMomentDetectingBeacon = -1;
+    private RangingThread rangingThread = null;
 
     //private RegionBootstrap regionBootstrap;
-    //private RangingThread rangingThread = null;
-
-
 
     private static final char ANDROID_VERSION_OREO_AND_NEVER = 'o';
     private static final char ANDROID_VERSION_NOUGAT_AND_OLDER = 'n';
@@ -131,17 +129,38 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
 
     public void startScan() {
         try {
+            // Set beacon scanning parameters based on Android version
+            if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) { //kitkat, loolipop, marshmallow, nougat
+                // Create a region to listen for beacons
+                // Wake up the app when any beacon is seen (you can specify specific id filers in the parameters below)
+                if (region == null)
+                    region = new Region("BeSC", null, null, null);
 
-            // Create a region to listen for beacons
-            // Wake up the app when any beacon is seen (you can specify specific id filers in the parameters below)
-            if (region == null)
-            region = new Region("BeSC", null, null, null);
+                beaconManager.setBackgroundScanPeriod(200L); // NOT TRUE!: this period cannot be longer than 2 times 100ms (beacon broadcast interval)
+                beaconManager.setBackgroundBetweenScanPeriod(650L); // non-round values to avoid the coincidence with beacon broadcast interval (100ms)
+                beaconManager.setForegroundScanPeriod(200L);
+                beaconManager.setForegroundBetweenScanPeriod(650L);
 
-            beaconManager.setBackgroundScanPeriod(200L); // NOT TRUE!: this period cannot be longer than 2 times 100ms (beacon broadcast interval)
-            beaconManager.setBackgroundBetweenScanPeriod(650L); // non-round values to avoid the coincidence with beacon broadcast interval (100ms)
-            beaconManager.setForegroundScanPeriod(200L);
-            beaconManager.setForegroundBetweenScanPeriod(650L);
+                BeaconManager.setRssiFilterImplClass(ArmaRssiFilter.class);
+                RunningAverageRssiFilter.setSampleExpirationMilliseconds(1000l);
+                ArmaRssiFilter.setDEFAULT_ARMA_SPEED(0.5);
+                beaconManager.setBackgroundMode(true);
+                beaconManager.setAndroidLScanningDisabled(true);
+                Log.d(TAG, "Beacon scanner started and listening for Android < 8 ");
+            } else {
+                Log.e(TAG, "Beacon scanner started and listening for Android >= 8 ");
+                // For Android Oreo and newer, use foreground service
+                setBLEForegroundService(null);
+            }
 
+            // Start ranging thread if not already started
+            if (rangingThread == null) {
+                Log.e(TAG, getString(R.string.rangingThreadStarting));
+                rangingThread = new RangingThread(region);
+                rangingThread.waitForThreadToAwake(250);
+                rangingThread.start();
+                Log.e(TAG, getString(R.string.rangingThreadStarted) + ", bind=" + beaconManager.isBound(rangingThread));
+            }
 
             // Bind BeaconManager to this activity
             beaconManager.bind(this);
@@ -153,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
             Log.e(TAG, getString(R.string.errorWhileInvokingBeaconManager) + ":" + e.getLocalizedMessage());
         }
     }
-
+/*
     public void stopScan() {
         scanStarted = false;
         Log.i(TAG, getString(R.string.scanStopped));
@@ -162,6 +181,103 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
             beaconManager.unbind(this);
         }
     }
+    */
+    public void stopScan() {
+        scanStarted = false;
+        Log.i(TAG, getString(R.string.scanStopped));
+        textViewMessage.setText(getString(R.string.scanStopped));
+        buttonStartStop.setText(getString(R.string.start));
+        if (rangingThread != null) {
+            rangingThread.exitThread();
+            rangingThread = null;
+        }
+    }
+
+    //@Override
+    public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
+        // Handle beacon ranging here
+    }
+
+    //    @Override
+    public void didEnterRegion(Region region) {
+        Log.d(TAG, getString(R.string.gotDidEnterRegionCall));
+        if (rangingThread == null) {
+            Log.d(TAG, getString(R.string.newRangingThread));
+            rangingThread = new RangingThread(region);
+            rangingThread.waitForThreadToAwake(2000);
+            rangingThread.start();
+        }
+    }
+
+    // @Override
+    public void didExitRegion(Region region) {
+        Log.d(TAG, getString(R.string.gotDidExitRegionCall));
+    }
+
+    //  @Override
+    public void didDetermineStateForRegion(int state, Region region) {
+        Log.d(TAG, getString(R.string.gotDidStateRegionCall) + '=' + state);
+    }
+
+    public boolean setBLEForegroundService(RangingThread notificationThread) {
+        try {
+            if (beaconManager.isBound(notificationThread)) {
+                beaconManager.unbind(notificationThread);
+                if (beaconManager.isBound(notificationThread))
+                    Log.e(TAG, getString(R.string.scanningForBeaconsInFormerAndroidForegroundTroubleStillBonded) + "???");
+            }
+            beaconManager.disableForegroundServiceScanning();
+
+            builderOreoForeground = new Notification.Builder(this);
+            builderOreoForeground.setSmallIcon(R.drawable.beam_bw);
+            builderOreoForeground.setContentTitle(getString(R.string.beaconScan));
+
+            intentOreoForeground = new Intent(this, MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intentOreoForeground, PendingIntent.FLAG_UPDATE_CURRENT);
+            builderOreoForeground.setContentIntent(pendingIntent);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                channelOreoForeground = new NotificationChannel(getString(R.string.notification_BLE_ID),
+                        getString(R.string.notificationBLE), NotificationManager.IMPORTANCE_DEFAULT);
+                channelOreoForeground.setDescription(getString(R.string.notificationChannelForBLEscan));
+                notificationManagerOreoForeground = (NotificationManager)
+                        getSystemService(Context.NOTIFICATION_SERVICE);
+                notificationManagerOreoForeground.createNotificationChannel(channelOreoForeground);
+                builderOreoForeground.setChannelId(channelOreoForeground.getId());
+            }
+
+            beaconManager.setEnableScheduledScanJobs(false);
+
+            if (beaconManager.isAnyConsumerBound()) {
+                beaconManager.stopRangingBeaconsInRegion(region);
+                beaconManager.stopMonitoringBeaconsInRegion(region);
+                if (beaconManager.isAnyConsumerBound())
+                    Log.e(TAG, getString(R.string.scanningForBeaconsInFormerAndroidForegroundTroubleStillBonded) + "?");
+            }
+
+            beaconManager.enableForegroundServiceScanning(builderOreoForeground.build(), 456);
+            beaconManager.setEnableScheduledScanJobs(false);
+
+            if (region == null)
+                region = new Region("BeSC", null, null, null);
+
+
+            beaconManager.setBackgroundScanPeriod(200L);
+            beaconManager.setBackgroundBetweenScanPeriod(650L);
+            beaconManager.setForegroundScanPeriod(200L);
+            beaconManager.setForegroundBetweenScanPeriod(650L);
+            beaconManager.setBackgroundMode(true);
+            beaconManager.setAndroidLScanningDisabled(true);
+
+            Log.e(TAG, getString(R.string.beaconScannerStartedAndListeningForAndroid8));
+            return true;
+        } catch (Throwable e) {
+            Log.e(TAG, getString(R.string.scanningForBeaconsInFormerAndroidForegroundModeCompatibleWithOreoERROR) + ": " + e.getMessage());
+            return false;
+        }
+    }
+
+
 
     @Override
     public void onBeaconServiceConnect() {
@@ -190,13 +306,150 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
         }
     }
 
-   // @Override
-    public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-        // Handle beacon ranging here
+    // Nested class representing your RangingThread
+    public class RangingThread extends Thread implements BeaconConsumer {
+
+        private RangeNotifier rangeNotifier;
+        //private static RangingThread rangingThread;
+        private long lastMomentDetectingBeacon = -1;
+        private boolean anyBeaconDetected = false;
+        private boolean isForegroundStarted = false;
+
+        private boolean threadStarted = false;
+        private BeaconManager beaconManager = null;
+        private Region region = null;
+        private char currentAndroidVersion = ANDROID_VERSION_NOUGAT_AND_OLDER;
+        private static final char ANDROID_VERSION_OREO_AND_NEVER = 'o';
+        private static final char ANDROID_VERSION_NOUGAT_AND_OLDER = 'n';
+
+        // Initialize other necessary components for the thread
+        protected RangingThread(Region region) {
+            this.region = region;
+            beaconManager = BeaconManager.getInstanceForApplication(MainActivity.this);
+
+        }
+
+        // Implementation of the thread's run method
+        @Override
+        public void run() {
+            Log.d(TAG, MainActivity.this.getString(
+                    R.string.beaconConsumerThreadStarted));
+            long lastActivity = System.currentTimeMillis();
+            long maxDelay = 30000L;//a half of a minute to restart, really pessimistic
+            long now = -1L;
+            while (threadStarted) {
+                if (!anyBeaconDetected) {
+// if no beacon detected and timeout reached, resetting the scanning
+                    try {
+                        if (currentAndroidVersion == ANDROID_VERSION_NOUGAT_AND_OLDER) {
+                            if (!beaconManager.isBound(this)) {
+                                beaconManager.bind(this);
+                                MainActivity.this.startRangingBeacons();
+                            }
+                            if (lastMomentDetectingBeacon > 0) {
+                                now = System.currentTimeMillis();
+                                if (lastMomentDetectingBeacon + maxDelay < now) {
+                                    lastMomentDetectingBeacon = now;
+                                    lastActivity = now;
+                                    beaconManager.unbind(this);
+                                }
+                            } else {
+                                now = System.currentTimeMillis();
+                                if (lastActivity + maxDelay < now) {
+                                    beaconManager.unbind(this);
+                                    lastActivity = now;
+                                    beaconManager.bind(this);
+                                    MainActivity.this.startRangingBeacons();
+                                }
+                            }
+                        }
+                    } catch (Throwable e) {
+                        Log.e(TAG, MainActivity.this.getString(
+                                R.string.beaconConsumerThreadBindError) + " 3:" + e.getMessage());
+                    }
+                }
+                try {
+                    Thread.sleep(100);
+                } catch (Throwable e) {
+                }
+            }
+            Log.d(TAG,
+                    MainActivity.this.getString(R.string.beaconConsumerThreadAborted));
+        }
+
+        // Implementation of the exitThread method
+        public void exitThread() {
+            Log.d(TAG,
+                    MainActivity.this.getString(R.string.beaconConsumerThreadDestroy));
+            if (currentAndroidVersion == ANDROID_VERSION_NOUGAT_AND_OLDER) {
+                beaconManager.unbind(this);
+            }
+            threadStarted = false;
+        }
+
+        // Implementation of the waitForThreadToAwake method
+        public void waitForThreadToAwake(long maxDelay) {
+            if (currentAndroidVersion == ANDROID_VERSION_NOUGAT_AND_OLDER) {
+                long start = System.currentTimeMillis();
+                long now = start;
+                long maxTime = start + maxDelay;
+                while ((!beaconManager.isBound(this)) && now < maxTime) {
+                    try {
+                        Thread.sleep(10);
+                        now = System.currentTimeMillis();
+                    } catch (Throwable e) {
+                        //ilb}
+                    }
+                }
+                Log.d(TAG, MainActivity.this.getString(
+                        R.string.waitedForRunningThreadToAwake) +
+                        ": " + (System.currentTimeMillis() - start) +
+                        MainActivity.this.getString(R.string.ms));
+            }
+        }
+
+        @Override
+        public void onBeaconServiceConnect() {
+
+        }
+
+        @Override
+        public Context getApplicationContext() {
+            return MainActivity.this.getApplicationContext();
+            //return null;
+        }
+
+        @Override
+        public void unbindService(ServiceConnection connection) {
+            // Implementation of unbindService method
+        }
+
+        @Override
+        public boolean bindService(Intent intent, ServiceConnection connection, int mode) {
+            // Implementation of bindService method
+            return false;
+        }
     }
 
-    // Other methods of BeaconConsumer
+        @Override
+        public Context getApplicationContext() {
+            return MainActivity.this.getApplicationContext();
+        }
 
+        @Override
+        public void unbindService(ServiceConnection serviceConnection) {
+            // Implementation of unbindService method
+        }
+
+        @Override
+        public boolean bindService(Intent intent, ServiceConnection serviceConnection, int i) {
+            // Implementation of bindService method
+            return false;
+        }
+
+
+    // Other methods of BeaconConsumer
+/*
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -204,4 +457,5 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer {
             beaconManager.unbind(this);
         }
     }
+    */
 }
